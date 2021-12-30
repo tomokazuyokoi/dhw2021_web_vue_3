@@ -1,32 +1,70 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
-  </div>
+  <v-app>
+    <Header/>
+    <v-main>
+      <v-container>
+        <router-view
+          @add-book-list="addBookList"
+          :booksForIndex="books"
+          @delete-local-storage="deleteLocalStorage"
+        />
+      </v-container>
+    </v-main>
+    <Footer/>
+  </v-app>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
+import Header from '@/global/Header'
+import Footer from '@/global/Footer'
 
-#nav {
-  padding: 30px;
-}
+const STRAGE_KEY = 'books'
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
+export default {
+  name: 'App',
+  components: {
+    Header,
+    Footer,
+  },
 
-#nav a.router-link-exact-active {
-  color: #42b983;
-}
-</style>
+  data(){
+    return{
+      books: []
+    }
+  },
+  mounted() {
+    // ローカルストレージにデータがあるか確認
+    if(localStorage.getItem(STRAGE_KEY))
+    {
+      // あれば、配列booksにローカルストレージのデータを入れる
+      this.books = JSON.parse(localStorage.getItem(STRAGE_KEY))
+    }
+  },
+  methods: {
+    addBookList(e){
+      this.books.push({
+        id: this.books.length,
+        title: e.title,
+        image: e.image,
+        description: e.description,
+      })
+
+      // ローカルストレージにデータを保存
+      const parsed = JSON.stringify(this.books)
+      localStorage.setItem(STRAGE_KEY, parsed)
+
+      // ページ移動
+      this.$router.push('/')
+    },
+    deleteLocalStorage(){
+      if(window.confirm('データを削除してもいいですか？'))
+      {
+        localStorage.setItem(STRAGE_KEY, '')
+        localStorage.removeItem(STRAGE_KEY)
+        this.books = []
+        window.location.reload()
+      }
+    }
+  }
+};
+</script>
